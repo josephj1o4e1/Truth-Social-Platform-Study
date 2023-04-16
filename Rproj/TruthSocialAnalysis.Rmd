@@ -181,8 +181,8 @@ graph.topN_retruthed_Author
 
 We should be concerned about the collection bias of this dataset. 
 Author claims that network average path length is short, and post content is diverse, which should be some proof that the dataset represents Truth Social enough. 
--> Still doubt it. If its a starshaped-expanded-symmetrical-network, it could be still within the big cluster of Trump, which was caused by the data collection methodology. 
--> 
+-> Watts and Strogatz model random network? BA model scale-free networks? they all predicted very short average path length! 
+-> Real Network: high cluster coefficient + short avg path length + high sparsity
 
 
 
