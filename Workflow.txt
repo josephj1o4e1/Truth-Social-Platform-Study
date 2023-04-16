@@ -1,0 +1,10 @@
+Initial Dataset analysis
+- RStudio + R (more familiar for analysis + ggplot2, easier to manage memory, easy to show multiple plots in single cell)
+- Jupyternotebook + Pandas (matplotlib harder to use)....better if there's machine/deeplearning involved
+
+Network Analysis + Visualization
+- Use R to create network data: nodes, edge(Source, Target)
+- Gephi
+
+Fancier Visualizations(Dashboards, Deployment, Server Connect)
+- Tableau + Postgresql + pgadmin

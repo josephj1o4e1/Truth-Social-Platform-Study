@@ -1,0 +1,144 @@
+---
+title: "SMI-FinalProj-TruthSocialAnalysis"
+author: "Joseph"
+date: "4/15/2023"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+# Specify the chunks you DON'T want to be knitted to the file: "{r, include=FALSE}"
+# If you are knitting, and wants to insert a new line, be sure to add 2 whitespaces at the end in the text.  
+knitr::opts_chunk$set(echo = TRUE)
+getwd() # check working directory. (should be the same as .Rproj)
+rm(list=ls()) # remove unwanted data
+```
+
+**install / load packages**  
+reference: https://statsandr.com/blog/an-efficient-way-to-install-and-load-r-packages/
+```{r, include=TRUE}
+# Install "pacman" package for "p_load" function if not yet installed
+pacman_installed <- "pacman" %in% rownames(installed.packages())
+if (pacman_installed == FALSE) {
+  install.packages("pacman")
+}
+rm(pacman_installed)
+```
+
+**Remove Dummy Variables at Once**  
+Better to create dummy variables with tmp.xxx, or xxx.tmp, and remove them all at once.  
+You'll be able to do that with this function remove_tmp().  
+```{r}
+remove_tmp <- function(){
+  rm(list = ls(pattern = "^tmp[.]", envir = .GlobalEnv), envir = .GlobalEnv)
+  rm(list = ls(pattern = "[.]tmp$", envir = .GlobalEnv), envir = .GlobalEnv)
+}
+```
+
+```{r}
+# load the packages you need
+pacman::p_load(tidyverse, modeest, Rmisc, dplyr, ggplot2, readr)
+```
+
+**load the dataset**
+```{r}
+DATA_PATH <- "..\\Dataset\\truth_social"
+load_tsv <- function(filename){
+  return(read_tsv(file.path(DATA_PATH, filename)))
+}
+```
+
+```{r}
+df.users<-load_tsv("users.tsv")
+df.truths<-load_tsv("truths.tsv")
+df.hashtags<-load_tsv("hashtags.tsv")
+df.truthHashTagEdges<-load_tsv("truth_hashtag_edges.tsv")
+df.truthUserTagEdges<-load_tsv("truth_user_tag_edges.tsv")
+df.follows<-load_tsv("follows.tsv")
+```
+
+```{r}
+summary(df.truthHashTagEdges)
+summary(df.hashtags)
+```
+
+What are the most common #hashtags? grouped bar chart
+```{r}
+# df.truthHashTagEdges: id, truth_id, hashtag_id
+# df.hashtags: id, first_seen, hashtag
+# df.truthHashTagEdges.hashtag_id == df.hashtags.id
+# groupby df.truthHashTagEdges.hashtag_id, count rows of df.truthHashTagEdges
+# link label to df.hashtags.hashtag
+
+# plot the frequency distribution of hashtags
+graph.hashtagsDist <- ggplot(df.truthHashTagEdges, aes(x=hashtag_id)) +
+  geom_histogram()
+graph.hashtagsDist
+```
+This looks like a power law distribution.  Just a few hashtags were commonly used in all truths.  
+
+
+Top 20 hashtags barchart: 
+create frequency data and extract top 20
+```{r}
+# groupby df.truthHashTagEdges.hashtag_id, count rows of df.truthHashTagEdges, get top20 counts hashtag_id, count
+df.agg.top20hashtags <- df.truthHashTagEdges %>%
+  group_by(hashtag_id) %>%
+  dplyr::summarize(cnt = n()) %>%
+  arrange(desc(cnt)) %>%
+  slice(1:20)
+
+df.agg.top20hashtags
+
+```
+
+```{r}
+head(df.hashtags, n=10)
+```
+
+```{r}
+# add bin information: link label text df.hashtags.hashtag to df.truthHashTagEdges.hashtag_id
+rm()
+df.agg.top20hashtags <- df.agg.top20hashtags %>%
+  inner_join(df.hashtags, by = c('hashtag_id'='id'))
+df.agg.top20hashtags
+```
+
+plot top 20 hashtags barchart
+```{r}
+# The reorder method: 
+graph.top20hashtags <- ggplot(df.agg.top20hashtags, aes(x=reorder(hashtag, +cnt), y=cnt)) +
+  geom_bar(stat = 'identity', wide=0.2) +
+  coord_flip()
+graph.top20hashtags
+
+
+# # The factor method: tell ggplot afterwards that I have an order factor already
+# df.agg.top20hashtags$hashtag2 <- factor(df.agg.top20hashtags$hashtag, levels = df.agg.top20hashtags$hashtag[order(df.agg.top20hashtags$cnt, decreasing = FALSE)])
+# df.agg.top20hashtags
+# graph.top20hashtags <- ggplot(df.agg.top20hashtags, aes(x=hashtag2, y=cnt)) +
+#   geom_bar(stat = 'identity', wide=0.2) +
+#   coord_flip()
+# graph.top20hashtags
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
