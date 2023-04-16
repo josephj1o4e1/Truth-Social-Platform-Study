@@ -106,28 +106,7 @@ graph.top20hashtags
 ```
 
 
-**Top 20 retruthed user barchart: **
-```{r}
-
-```
-
-
-
-**Network Analysis**
-- followers distribution
-- follows.tsv network (4,002,115 #records, becareful)
-- Top 20 followed bar chart
-
-- Author/User Network
-  Dataset: truths.tsv
-  node: author, edge: id, Source=retruth author/user, Target=truth_retruthed author/user
-  edge size coded: freq of (source, target)
-  ...Too many user nodes. Partition. 
-  ...Can we get In-Degree Distribution plot faster than constructing a network graph? If so, observe the In-Degree Distribution first. 
-    -> plot top 10000 retruth histogram
-  ...Minimized Author Network: Top 1000 retruthed Authors + Top 500000 retruthing Authors
-  ...
-  ...Or, first filter out 'Original Truths' using !is_retruth & !is_reply
+**Top Retruthed Users Barchart: **
 ```{r}
 # df.agg.originaltruths <- df.truths[!df.truths$is_retruth & !df.truths$is_reply, ]
 # df.agg.originaltruths # 317706 obs.
@@ -193,19 +172,67 @@ graph.topN_retruthed_Author
 
 ```
 
-  
-  
-- top 20 retruthed authors top 10 hashtags --> hashtag frequency bar chart
+
+- top 20 retruthed authors top 10 hashtags --> real total hashtag frequency bar chart
 ```{r}
 
 ```
 
 
+We should be concerned about the collection bias of this dataset. 
+Author claims that network average path length is short, and post content is diverse, which should be some proof that the dataset represents Truth Social enough. 
+-> Still doubt it. If its a starshaped-expanded-symmetrical-network, it could be still within the big cluster of Trump, which was caused by the data collection methodology. 
+-> 
+
+
+
+
+
+
+
+**Network Analysis**
+- followers distribution
+- follows.tsv network (4,002,115 #records, becareful)
+- Top 20 followed bar chart
+
+- Author/User Network
+  Dataset: truths.tsv
+  node: author, edge: id, Source=retruth author/user, Target=truth_retruthed author/user
+  edge size coded: freq of (source, target)
+  ...Too many user nodes. Partition. 
+  ...Can we get In-Degree Distribution plot faster than constructing a network graph? If so, observe the In-Degree Distribution first. 
+    -> plot top 10000 retruth histogram
+  ...Minimized Author Network: Top 1000 retruthed Authors + Top 500000 retruthing Authors
+  ...
+  ...Or, first filter out 'Original Truths' using !is_retruth & !is_reply
+  
 
 **Create NetworkData for Gephi**
+follows network graph
 ```{r}
-
+head(df.follows)
 ```
+
+```{r}
+df.nw.follows <- df.follows %>%
+  select(id, time_scraped, Source=follower, Target=followed) %>%
+  inner_join(df.users, by=c('Source'='id')) %>%
+  select(id, time_scraped.x, Source, src_username = username, Target) %>%
+  inner_join(df.users, by=c('Target'='id')) %>%
+  select(id, time_scraped.x, Source, src_username, Target, tar_username = username)
+head(df.nw.follows)
+
+write_tsv(df.nw.follows, file.path(DATA_PATH, "follows_nwgraph.tsv"))
+```
+
+
+
+
+
+
+
+
+
 
 
 
