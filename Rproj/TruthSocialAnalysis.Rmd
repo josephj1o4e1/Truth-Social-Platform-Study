@@ -36,7 +36,7 @@ remove_tmp <- function(){
 
 ```{r}
 # load the packages you need
-pacman::p_load(tidyverse, modeest, Rmisc, dplyr, ggplot2, readr)
+pacman::p_load(tidyverse, modeest, Rmisc, dplyr, ggplot2, readr, igraph)
 ```
 
 **load the dataset**
@@ -69,7 +69,7 @@ What are the most common #hashtags? grouped bar chart
 df.agg.top20hashtags <- df.truthHashTagEdges %>%
   group_by(hashtag_id) %>%
   dplyr::summarize(cnt = n()) %>%
-  arrange(desc(cnt), .by_group = TRUE) %>%
+  arrange(desc(cnt)) %>%
   slice(1:20)
 df.agg.top20hashtags
 ```
@@ -172,9 +172,10 @@ graph.topN_retruthed_Author
 
 ```
 
-
-- top 20 retruthed authors top 10 hashtags --> real total hashtag frequency bar chart
+- pool the top 20 retruthed authors' top 20 hashtags --> real total hashtag frequency bar chart
 ```{r}
+# guessing that they are the same as top 20 hashtags? 
+# df.truths semijoin df.agg.topN_retruthed_Author (author=orig_truth_author)
 
 ```
 
@@ -191,6 +192,65 @@ Author claims that network average path length is short, and post content is div
 
 
 **Network Analysis**
+- Find the Hubs in the follows.tsv network graph. 
+- What are the behaviors of the Hubs? (Monthly? During a time of an event?) 
+*Create NetworkData for Gephi*
+follows network graph
+```{r}
+# head(df.follows)
+```
+
+```{r}
+# df.nw.follows <- df.follows %>%
+#   select(id, time_scraped, Source=follower, Target=followed) %>%
+#   inner_join(df.users, by=c('Source'='id')) %>%
+#   select(id, time_scraped.x, Source, src_username = username, Target) %>%
+#   inner_join(df.users, by=c('Target'='id')) %>%
+#   select(id, time_scraped.x, Source, src_username, Target, tar_username = username)
+# head(df.nw.follows)
+# 
+# write_tsv(df.nw.follows, file.path(DATA_PATH, "follows_nwgraph.tsv"))
+
+head(df.nw.follows)
+```
+
+
+```{r}
+source_vec <- df.nw.follows$Source
+target_vec <- df.nw.follows$Target
+edges_vec <- c()
+# N <- length(source_vec)
+N <- 100000
+
+for(i in 1:N){
+  edges_vec <- c(edges_vec, source_vec[i], target_vec[i])
+}
+
+graph.nw.follows <- graph( edges=as.character(edges_vec), n=N, directed=FALSE )
+# plot(graph.nw.follows, vertex.label=NA)
+
+
+vec.nw.follows.degdist <- degree_distribution(graph.nw.follows)
+vec.nw.follows.deg <- degree(graph.nw.follows)
+
+# who are the hubs?
+tail(sort(vec.nw.follows.deg),20)
+
+```
+
+
+
+```{r}
+# use follower_count in df.users, follower_count histogram -> deg dist
+tmp.1 <- ggplot(df.users, aes(x=follower_count)) + 
+  geom_histogram(binwidth=50000) +
+  xlim(0, 5000000) +
+  ylim(0, 40) +
+  labs(x='follower count (binsize=50000)')
+tmp.1
+```
+
+
 - followers distribution
 - follows.tsv network (4,002,115 #records, becareful)
 - Top 20 followed bar chart
@@ -207,23 +267,7 @@ Author claims that network average path length is short, and post content is div
   ...Or, first filter out 'Original Truths' using !is_retruth & !is_reply
   
 
-**Create NetworkData for Gephi**
-follows network graph
-```{r}
-head(df.follows)
-```
 
-```{r}
-df.nw.follows <- df.follows %>%
-  select(id, time_scraped, Source=follower, Target=followed) %>%
-  inner_join(df.users, by=c('Source'='id')) %>%
-  select(id, time_scraped.x, Source, src_username = username, Target) %>%
-  inner_join(df.users, by=c('Target'='id')) %>%
-  select(id, time_scraped.x, Source, src_username, Target, tar_username = username)
-head(df.nw.follows)
-
-write_tsv(df.nw.follows, file.path(DATA_PATH, "follows_nwgraph.tsv"))
-```
 
 
 
