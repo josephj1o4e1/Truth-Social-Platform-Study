@@ -1,0 +1,210 @@
+## ----setup, include=FALSE------------------------------------------------------------------
+# Specify the chunks you DON'T want to be knitted to the file: "{r, include=FALSE}"
+# If you are knitting, and wants to insert a new line, be sure to add 2 whitespaces at the end in the text.  
+knitr::opts_chunk$set(echo = TRUE)
+getwd() # check working directory. (should be the same as .Rproj)
+rm(list=ls()) # remove unwanted data
+
+
+## ---- include=TRUE-------------------------------------------------------------------------
+# Install "pacman" package for "p_load" function if not yet installed
+pacman_installed <- "pacman" %in% rownames(installed.packages())
+if (pacman_installed == FALSE) {
+  install.packages("pacman")
+}
+rm(pacman_installed)
+
+
+## ------------------------------------------------------------------------------------------
+remove_tmp <- function(){
+  rm(list = ls(pattern = "^tmp[.]", envir = .GlobalEnv), envir = .GlobalEnv)
+  rm(list = ls(pattern = "[.]tmp$", envir = .GlobalEnv), envir = .GlobalEnv)
+}
+
+
+## ------------------------------------------------------------------------------------------
+# load the packages you need
+pacman::p_load(tidyverse, modeest, Rmisc, dplyr, ggplot2, readr, igraph)
+
+
+## ------------------------------------------------------------------------------------------
+DATA_PATH <- "..\\Dataset\\truth_social"
+load_tsv <- function(filename){
+  return(read_tsv(file.path(DATA_PATH, filename)))
+}
+
+
+## ------------------------------------------------------------------------------------------
+df.users<-load_tsv("users.tsv")
+df.truths<-load_tsv("truths.tsv")
+df.hashtags<-load_tsv("hashtags.tsv")
+df.truthHashTagEdges<-load_tsv("truth_hashtag_edges.tsv")
+df.truthUserTagEdges<-load_tsv("truth_user_tag_edges.tsv")
+df.follows<-load_tsv("follows.tsv")
+
+
+## ------------------------------------------------------------------------------------------
+summary(df.truthHashTagEdges)
+summary(df.hashtags)
+
+
+## ------------------------------------------------------------------------------------------
+# groupby df.truthHashTagEdges.hashtag_id, count rows of df.truthHashTagEdges, get top20 counts hashtag_id, count
+df.agg.top20hashtags <- df.truthHashTagEdges %>%
+  group_by(hashtag_id) %>%
+  dplyr::summarize(cnt = n()) %>%
+  arrange(desc(cnt)) %>%
+  slice(1:20)
+df.agg.top20hashtags
+
+
+## ------------------------------------------------------------------------------------------
+head(df.hashtags, n=10)
+
+
+## ------------------------------------------------------------------------------------------
+df.agg.top20hashtags <- df.agg.top20hashtags %>%
+  inner_join(df.hashtags, by = c('hashtag_id'='id')) %>%
+  select(hashtag_id, hashtag, cnt)
+df.agg.top20hashtags
+
+
+## ------------------------------------------------------------------------------------------
+# The reorder method: 
+graph.top20hashtags <- ggplot(df.agg.top20hashtags, aes(x=reorder(hashtag, +cnt), y=cnt)) +
+  geom_bar(stat = 'identity', wide=0.2) +
+  labs(title="Top 20 hashtags", x="hashtag", y="count") +
+  coord_flip()
+graph.top20hashtags
+
+
+# # The factor method: tell ggplot afterwards that I have an order factor already
+# df.agg.top20hashtags$hashtag2 <- factor(df.agg.top20hashtags$hashtag, levels = df.agg.top20hashtags$hashtag[order(df.agg.top20hashtags$cnt, decreasing = FALSE)])
+# df.agg.top20hashtags
+# graph.top20hashtags <- ggplot(df.agg.top20hashtags, aes(x=hashtag2, y=cnt)) +
+#   geom_bar(stat = 'identity', wide=0.2) +
+#   coord_flip()
+# graph.top20hashtags
+
+
+## ------------------------------------------------------------------------------------------
+# df.agg.originaltruths <- df.truths[!df.truths$is_retruth & !df.truths$is_reply, ]
+# df.agg.originaltruths # 317706 obs.
+# 
+# df.agg.originaltruths2 <- df.truths[df.truths$truth_retruthed==-1, ]
+# df.agg.originaltruths2 # 600864 obs.
+# 
+# df.agg.originaltruths3 <- df.truths[!df.truths$is_retruth & !df.truths$is_reply & df.truths$truth_retruthed==-1, ]
+# df.agg.originaltruths3 # 317704 obs.
+
+# # only 2 obs. are !(!is_retruth & !is_reply & truth_retruthed!=-1)
+# tmp.0 <- df.agg.originaltruths %>%
+#   anti_join(df.agg.originaltruths3, by = "id")
+
+# id=813604 --> !is_retruth & !is_reply & truth_retruthed=1058980
+# id=898948 --> !is_retruth & !is_reply & truth_retruthed=896021
+# Mostly True that !df.truths$is_retruth & !df.truths$is_reply is a subset of df.truths$truth_retruthed==-1
+# Suspicious that some of the df.truths$truth_retruthed==-1 represents missing data. 
+# ...or it means quote? quotes only have 10508 entries.
+# use !df.truths$is_retruth & !df.truths$is_reply & df.truths$truth_retruthed==-1 as Original Truth. 
+
+df.agg.originaltruths <- df.truths[!df.truths$is_retruth & !df.truths$is_reply & df.truths$truth_retruthed==-1, ]
+df.agg.originaltruths # 317704 obs.
+
+# Top 20 (also try Top 10000) retruthed original truths
+
+# Nodes: the retruths that retruthed original_truths
+# Author = Source's author id, Source = retruth/reply id, Target = original truth id
+df.nw.AuthorNetwork <- df.truths %>%
+  semi_join(df.agg.originaltruths, by = c('truth_retruthed'='id')) %>%
+  select(Author = author, Source = id, Target = truth_retruthed)
+df.nw.AuthorNetwork
+
+df.agg.topN_retruthed_Truths <- df.nw.AuthorNetwork %>%
+  group_by(Target) %>%
+  dplyr::summarize(retruthed_cnt = n()) %>%
+  arrange(desc(retruthed_cnt)) %>%
+  slice(1:100000)
+# df.agg.topN_retruthed_Truths
+
+df.agg.topN_retruthed_Author <- df.agg.topN_retruthed_Truths %>%
+  inner_join(df.truths, by = c('Target'='id')) %>%
+  select(orig_truth_id=Target, orig_truth_author=author, retruthed_cnt) %>%
+  inner_join(df.users, by = c('orig_truth_author'='id')) %>%
+  select(orig_truth_id, orig_truth_author, username, retruthed_cnt) %>%
+  group_by(orig_truth_author, username) %>%
+  dplyr::summarize(total_retruthed_cnt = sum(retruthed_cnt)) %>%
+  arrange(desc(total_retruthed_cnt))
+  # top_n(100)
+# weird that slice_max and top_n both are acting weird......
+df.agg.topN_retruthed_Author<-df.agg.topN_retruthed_Author[1:20,]
+df.agg.topN_retruthed_Author
+
+
+graph.topN_retruthed_Author <- ggplot(df.agg.topN_retruthed_Author, aes(x=reorder(username, +total_retruthed_cnt), y=total_retruthed_cnt)) +
+  geom_bar(stat = 'identity', wide=0.2) +
+  theme(axis.text.x = element_text(size = 12),
+        axis.text.y = element_text(size = 12)) +
+  labs(title="Top N Retruthed Users", x="username", y="total retruth count") +
+  coord_flip()
+graph.topN_retruthed_Author
+
+
+
+
+## ------------------------------------------------------------------------------------------
+# guessing that they are the same as top 20 hashtags? 
+# df.truths semijoin df.agg.topN_retruthed_Author (author=orig_truth_author)
+
+
+
+## ------------------------------------------------------------------------------------------
+# head(df.follows)
+
+
+## ------------------------------------------------------------------------------------------
+# df.nw.follows <- df.follows %>%
+#   select(id, time_scraped, Source=follower, Target=followed) %>%
+#   inner_join(df.users, by=c('Source'='id')) %>%
+#   select(id, time_scraped.x, Source, src_username = username, Target) %>%
+#   inner_join(df.users, by=c('Target'='id')) %>%
+#   select(id, time_scraped.x, Source, src_username, Target, tar_username = username)
+# head(df.nw.follows)
+# 
+# write_tsv(df.nw.follows, file.path(DATA_PATH, "follows_nwgraph.tsv"))
+
+head(df.nw.follows)
+
+
+## ------------------------------------------------------------------------------------------
+source_vec <- df.nw.follows$Source
+target_vec <- df.nw.follows$Target
+edges_vec <- c()
+# N <- length(source_vec)
+N <- 100000
+
+for(i in 1:N){
+  edges_vec <- c(edges_vec, source_vec[i], target_vec[i])
+}
+
+graph.nw.follows <- graph( edges=as.character(edges_vec), n=N, directed=FALSE )
+# plot(graph.nw.follows, vertex.label=NA)
+
+
+vec.nw.follows.degdist <- degree_distribution(graph.nw.follows)
+vec.nw.follows.deg <- degree(graph.nw.follows)
+
+# who are the hubs?
+tail(sort(vec.nw.follows.deg),20)
+
+
+
+## ------------------------------------------------------------------------------------------
+# use follower_count in df.users, follower_count histogram -> deg dist
+tmp.1 <- ggplot(df.users, aes(x=follower_count)) + 
+  geom_histogram(binwidth=50000) +
+  xlim(0, 5000000) +
+  ylim(0, 40) +
+  labs(x='follower count (binsize=50000)')
+tmp.1
+
