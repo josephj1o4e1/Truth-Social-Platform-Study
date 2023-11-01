@@ -32,8 +32,7 @@ In the Truth Social Dataset paper (P. Gerard, 2023), the author also did some in
 However, just by looking at the trend spikes of frequency count of posts is not enough to claim that Truth Social is responsible and is more dangerous than other platforms. 
 Mainstream platforms might also have similar spikes around the time of certain events. Maybe we should further ask:  
 •	Is the proportion of the “keyword related truths” to “all truths” higher compared to other mainstream platforms?  
-•	Are there any odd behaviors from “responsible users”  
-    Responsible users: Hubs and its community within path length < 3  
+•	Are there any odd behaviors from “responsible users”  (Responsible users: Hubs and its community within path length < 3)  
 •	Content Analysis:  Are there more provoking contents? How should we define the content as ‘provoking’?  
 •	Which user accounts are responsible for those provoking contents?  
 •	Are the chances higher for a user to encounter these provoking contents?  
