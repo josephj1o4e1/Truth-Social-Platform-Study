@@ -27,20 +27,28 @@ favor of Donald Trump and his supporters.
 Despite all these obvious results, I would like to throw out some questions.  
 If we want to strongly claim the responsibility of Truth Social or its related platforms, public figures, I think there are more things to be confirmed.  
 
-Discussion 1:
-In the Truth Social Dataset paper (P. Gerard, 2023), the author also did some interesting analysis and visualizations. In the trend graph (Feb 2022 ~ Oct 2022) indicating the Keyword spikes of “Jan 6 Capitol Riots” and “FBI Mar-a-lago”, the authors reveals that the spikes in Truth Social symmetrically matches the spikes in Google Trend. Thus, it is suspicious that the platform is suspicious for provoking such contents at the time.  
-However, just by looking at the trend spikes of frequency count of posts is not enough to claim that Truth Social is responsible and is more dangerous than other platforms. Mainstream platforms might also have similar spikes around the time of certain events. Maybe we should further ask: 
-•	Is the proportion of the “keyword related truths” to “all truths” higher compared to other mainstream platforms? 
-•	Are there any odd behaviors from “responsible users”
-    Responsible users: Hubs and its community within path length < 3
-•	Content Analysis:  Are there more provoking contents? How should we define the content as ‘provoking’?
-•	Which user accounts are responsible for those provoking contents?
-•	Are the chances higher for a user to encounter these provoking contents?
-•	Are the provoking contents false?
+Discussion 1:  
+In the Truth Social Dataset paper (P. Gerard, 2023), the author also did some interesting analysis and visualizations. In the trend graph (Feb 2022 ~ Oct 2022) indicating the Keyword spikes of “Jan 6 Capitol Riots” and “FBI Mar-a-lago”, the authors reveals that the spikes in Truth Social symmetrically matches the spikes in Google Trend.  Thus, it is suspicious that the platform is suspicious for provoking such contents at the time.  
+However, just by looking at the trend spikes of frequency count of posts is not enough to claim that Truth Social is responsible and is more dangerous than other platforms. 
+Mainstream platforms might also have similar spikes around the time of certain events. Maybe we should further ask:  
+•	Is the proportion of the “keyword related truths” to “all truths” higher compared to other mainstream platforms?  
+•	Are there any odd behaviors from “responsible users”  
+    Responsible users: Hubs and its community within path length < 3  
+•	Content Analysis:  Are there more provoking contents? How should we define the content as ‘provoking’?  
+•	Which user accounts are responsible for those provoking contents?  
+•	Are the chances higher for a user to encounter these provoking contents?  
+•	Are the provoking contents false?  
+  
+Discussion 2:  
+Does the dataset still have sampling bias? The author reveals that they did a bread-first manner scraping staring from @realDonaldTrump. It would be intuitive to suspect that the data is biased.  
+The author claims that the dataset is representable because the network has a short average path length, which is a key trait of a Watts and Strogatz network model (Watts, 1998) and BA network model (Albert, 2002).  
+However, the Watts and Strogatz network model also suggest that networks have high cluster coefficients.  
+Research has also shown that real-world networks are often sparse (Leskovec, 2008).  
+Therefore, we should further test out the the cluster coefficients and the sparsity of the network to have a stronger confirm that the network from the truth social dataset is a real-world network.  
 
-Discussion 2:
-Does the dataset still have sampling bias? The author reveals that they did a bread-first manner scraping staring from @realDonaldTrump. It would be intuitive to suspect that the data is biased. The author claims that the dataset is representable because the network has a short average path length, which is a key trait of a Watts and Strogatz network model (Watts, 1998) and BA network model (Albert, 2002). However, the Watts and Strogatz network model also suggest that networks have high cluster coefficients. Research has also shown that real-world networks are often sparse (Leskovec, 2008). Therefore, we should further test out the the cluster coefficients and the sparsity of the network to have a stronger confirm that the network from the truth social dataset is a real-world network.  
-
-Discussion 3: 
-According to this news post from The Hill (Klar, 2023), there is a possibility that after Parler was released again from the Capitol Riot ban, it is modifying its business model in contrast of its previous version. I suspect that there is a possibility where Parler users are switching to other platforms such as Truth Social. We can analyze the similar user conversion flow, and construct a Dual-Layered map visualization.  
+Discussion 3:   
+According to this news post from The Hill (Klar, 2023), there is a possibility that after Parler was released again from the Capitol Riot ban,  
+it is modifying its business model in contrast of its previous version.  
+I suspect that there is a possibility where Parler users are switching to other platforms such as Truth Social.  
+We can analyze the similar user conversion flow, and construct a Dual-Layered map visualization.  
 
